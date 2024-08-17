@@ -1,6 +1,6 @@
 package com.crio.qcontest.entities;
 
-public class User {
+public class User implements Comparable<User>{
     private final Long id;
     private final String name;
     private Integer score;
@@ -31,6 +31,10 @@ public class User {
 
     public void setScore(Integer score){
         this.score = score;
+    }
+    @Override
+    public int compareTo(User user){
+        return this.score.compareTo(user.score); //Ascending order
     }
 
     @Override

@@ -3,9 +3,10 @@ package com.crio.qcontest.services;
  import java.util.Collections;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
-
+import javax.management.RuntimeErrorException;
 import com.crio.qcontest.entities.Contest;
 import com.crio.qcontest.entities.Contestant;
 import com.crio.qcontest.entities.DifficultyLevel;
@@ -40,8 +41,26 @@ public class ContestService{
      * @throws RuntimeException if user is not found or requested questions cannot be fulfilled.
      */
     public Contest createContest(String name, DifficultyLevel level, Long userId, Integer numOfQuestions) {
-        return null;
 
+       
+        if (name == null || level == null || userId == null || numOfQuestions == null) {
+            throw new IllegalArgumentException("Contest details should not be null");
+        }
+        // Check if the user exists first
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User with an id: " + userId + " not found!"));
+    
+        // Validate the number of questions after the user check
+        List<Question> questionList = questionRepository.findByDifficultyLevel(level);
+        if (questionList.size() < numOfQuestions) {
+            throw new IllegalArgumentException("Requested number of questions: "+numOfQuestions+" cannot be fulfilled!");
+        }
+    
+        // Pick the required number of questions
+        List<Question> newList = pickRandomQuestions(questionList, numOfQuestions);
+    
+        Contest contest = new Contest(name, level, user, newList);
+        return contestRepository.save(contest);
     }
 
     // https://www.codespeedy.com/how-to-randomly-select-items-from-a-list-in-java/
@@ -66,7 +85,12 @@ public class ContestService{
      * @return List of contests filtered by difficulty level.
      */
     public List<Contest> listContests(DifficultyLevel level) {
-        return Collections.emptyList();
+        if (level == null){
+           return contestRepository.findAll();
+        }
+        else{
+           return contestRepository.findByDifficultyLevel(level);
+        }
     }
 
     /**
@@ -77,7 +101,16 @@ public class ContestService{
      * @throws RuntimeException if contest or user is not found.
      */
     public Contestant attendContest(Long contestId, Long userId) {
-        return null;
+        if (contestId == null || userId == null){
+            throw new IllegalArgumentException("contestId or userId cannot be null ");
+        }
+        
+        Contest contest = contestRepository.findById(contestId).orElseThrow(() -> new RuntimeException("Contest with an id "+contestId+" not found!"));
+
+        User user = userRepository.findById(userId).orElseThrow(()-> new RuntimeException("User with an id "+userId+" not found!"));
+
+        Contestant contestant = new Contestant(user, contest);
+        return contestantRepository.save(contestant);
     }
 
     /**
@@ -88,7 +121,13 @@ public class ContestService{
      * @throws RuntimeException if contestant is not found.
      */
     public Boolean withdrawContest(Long contestId, Long userId) {
-        return null;
+        boolean exist = contestantRepository.exists(contestId, userId);
+        if(!exist){
+           throw new RuntimeException("Contestant not found!");
+        }
+        contestantRepository.deleteById(contestId, userId);
+        exist = contestantRepository.exists(contestId, userId);
+        return !exist;
     }
 
     /**
@@ -134,6 +173,14 @@ public class ContestService{
      * @throws RuntimeException if contest is not found.
      */
     public List<Contestant> contestHistory(Long contestId) {
-        return Collections.emptyList();
+
+        List<Contestant> contestants = contestantRepository.findByContestId(contestId);
+
+        if (contestants.isEmpty()) {
+            throw new RuntimeException("Contest with an id " + contestId + " not found!");
+        }
+       Collections.sort(contestants, Collections.reverseOrder());
+
+       return contestants;
     }  
 }

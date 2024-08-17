@@ -1,6 +1,6 @@
 package com.crio.qcontest.services;
 
- import java.util.Collections;
+import java.util.Collections;
 import java.util.List;
 
 import com.crio.qcontest.entities.DifficultyLevel;
@@ -23,7 +23,12 @@ public class QuestionService{
      * @return Created Question object.
      */
     public Question createQuestion(String title,DifficultyLevel level, Integer difficultyScore) {
-        return null;
+        // Create a new Question object with the provided parameters.
+        Question newQuestion = new Question(title,level,difficultyScore);
+        // Save the newly created Question object to the repository.
+        Question question = questionRepository.save(newQuestion);
+        // Return the newly created Question
+        return question;
     }
 
     /**
@@ -32,6 +37,11 @@ public class QuestionService{
      * @return List of questions filtered by difficulty level.
      */
     public List<Question> listQuestions(DifficultyLevel level) {
-        return Collections.emptyList();
+
+        if (level==null){
+            return questionRepository.findAll();
+        }
+        else 
+            return questionRepository.findByDifficultyLevel(level);
     }
 }

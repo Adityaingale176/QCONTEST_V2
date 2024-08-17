@@ -5,7 +5,7 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
 
-public class Contestant {
+public class Contestant implements Comparable<Contestant>{
     private final User user;
     private final Contest contest;
     private final Set<Question> solvedQuestions;
@@ -54,4 +54,10 @@ public class Contestant {
         return "Contestant [user=" + user.getId() + ", contest=" + contest.getId() + 
         ", totalScore=" + totalScore + ", solvedQuestions=" + solvedQuestions + "]";
     }
+
+    @Override
+    public int compareTo(Contestant contestant) {
+       return this.totalScore.compareTo(contestant.totalScore); //Ascending order
+    }
+
 }

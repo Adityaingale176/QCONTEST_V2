@@ -25,7 +25,6 @@ public class Contest {
         this.questions = other.questions;
     }
 
-
     public String getName() {
         return name;
     }
